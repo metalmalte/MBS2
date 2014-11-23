@@ -13,6 +13,7 @@
  * Copyright (c) 2010 Institute of Medical Informatics,
  *            University of Luebeck
  ********************************************************/
+#include <iostream>
 #include "WindowLevelFilter.h"
 
  /* Default constructor */
@@ -62,6 +63,40 @@ bool WindowLevelFilter::Execute()
    * use the operator static_cast<T>() to convert values to type T!
    */
 
+    const double min = m_Level - 0.5 * m_Window;
+    const double max = m_Level + 0.5 * m_Window;
+
+    const double c1 = -min;
+    const double c2 = static_cast<double> (255/(max - min));
+
+    std::cout << "min: " << min << std::endl;
+    std::cout << "max: " << max << std::endl;
+    std::cout << "c1: " << c1 << std::endl;
+    std::cout << "c2: " << c2 << std::endl;
+
+    for (unsigned int y = 0; y < m_InputImage->GetSizeY(); y++) {
+
+        for (unsigned int x = 0; x < m_InputImage->GetSizeX(); x++) {
+
+            double const pixelValue = static_cast<double> (m_InputImage->GetPixel(x, y));
+
+            double const result = (pixelValue + c1) * c2;
+            Image::PixelType value = 0;
+
+            // zero values
+            if(result < 0) {
+                // nothing to do here, because value is already 0
+            } else if(result > 255) {
+                value = 255;
+            } else {
+                value = static_cast<short> (result);
+            }
+
+            m_OutputImage->SetPixel(x, y, value);
+
+        }
+
+    }
 
   return true;
 }
